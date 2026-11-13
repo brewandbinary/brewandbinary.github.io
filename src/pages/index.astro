@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+const siteOrigin = Astro.site ?? new URL('https://brewandbinary.github.io/');
+const canonicalURL = new URL('/', siteOrigin).href;
+const seoTitle = 'Brew & Binary — Fresh tech, AI & code';
+const seoDescription = 'Brew & Binary — Fresh tech, AI & code, brewed weekly. Discover QA, automation, development and tech insights.';
+const socialImage = new URL('/images/featured-ai-agents.jpg', siteOrigin).href;
+const categories = ['Articles', 'AI', 'QA', 'Automation', 'Development', 'Tech News'];
+const categoryUrl = (name) => name === 'Articles' ? '/#articles' : `/categories/${name.toLowerCase().replaceAll(' ', '-')}/`;
+const published = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => new Date(b.data.pubDate ?? b.data.date ?? 0).getTime() - new Date(a.data.pubDate ?? a.data.date ?? 0).getTime());
+const dateLabel = (value) => value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'UTC' }) : '';
+const articles = published.map((post) => ({
+  title: post.data.title,
+  category: post.data.category ?? 'Articles',
+  date: dateLabel(post.data.pubDate ?? post.data.date),
+  read: post.data.readingTime ?? post.data.readTime ?? post.data.read ?? 'Article',
+  image: post.data.image ?? post.data.cover ?? '/images/weekly-tech-news.jpg',
+  description: post.data.description ?? '',
+  url: `/articles/${post.id}/`,
+  featured: post.data.featured === true,
+}));
+const featuredArticle = articles.find((article) => article.featured);
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={seoDescription} />
+  <title>{seoTitle}</title>
+  <link rel="canonical" href={canonicalURL} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Brew & Binary" />
+  <meta property="og:title" content={seoTitle} />
+  <meta property="og:description" content={seoDescription} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:image" content={socialImage} />
+  <meta property="og:image:alt" content="Brew & Binary technology publication" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={seoTitle} />
+  <meta name="twitter:description" content={seoDescription} />
+  <meta name="twitter:image" content={socialImage} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Brew and Binary home">brew <span>&amp;</span> binary<span class="dot">.</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        {categories.map((category, index) => <a href={categoryUrl(category)} class={index === 0 ? 'active' : ''} data-category={category}>{category}</a>)}
+      </nav>
+      <div class="header-actions"><button class="search-trigger" aria-label="Search articles" title="Search articles"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.8" cy="10.8" r="7.5"/><path d="m16.4 16.4 5 5"/></svg></button><a class="subscribe" href="#newsletter">Subscribe</a><button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button></div>
+    </div>
+    <nav class="mobile-nav" aria-label="Mobile navigation" hidden>{categories.map((category) => <a href={categoryUrl(category)} data-category={category}>{category}</a>)}</nav>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-deco left" aria-hidden="true">&lt;/&gt;</div><div class="hero-deco right" aria-hidden="true">0 1 0 0 1 1 0 1<br/>1 0 1 0 0 1 0 0<br/>0 1 1 0 1 0 1 1</div>
+      <h1 id="hero-heading">brew <span>&amp;</span> binary<span class="dot">.</span></h1>
+      <p class="tagline">Fresh tech, AI &amp; code — brewed weekly.</p>
+      <div class="hero-rule"><span></span></div>
+      <p class="topics">TECH NEWS <b>•</b> AI <b>•</b> QA <b>•</b> AUTOMATION <b>•</b> DEVELOPMENT</p>
+    </section>
+    <section class="featured wrap" aria-labelledby="featured-title">
+       {featuredArticle ? (
+         <a href={featuredArticle.url} class="featured-image-link" aria-label={`Read ${featuredArticle.title}`}><img src={featuredArticle.image} alt={featuredArticle.title} /></a>
+       ) : <img src="/images/featured-ai-agents.jpg" alt="AI coding agents on a laptop beside a coffee mug" />}
+       <div class="featured-copy"><span class="eyebrow">FEATURED</span><h2 id="featured-title">{featuredArticle ? <a href={featuredArticle.url}>{featuredArticle.title}</a> : '5 AI Coding Agents Worth Trying in 2026'}</h2><p>{featuredArticle?.description ?? 'A practical comparison of AI coding assistants, with real use cases, strengths, and limitations.'}</p><div class="meta"><span>{featuredArticle?.date ?? 'Nov 08, 2026'}</span><i></i><span>{featuredArticle?.read ?? '9 min read'}</span></div>{!featuredArticle && <span class="feature-note">Coming soon</span>}</div>
+</section>
+    <section class="articles wrap" id="articles" aria-labelledby="articles-heading"><div class="section-head"><div><h2 id="articles-heading">Latest Articles</h2><span class="underline"></span></div><a href="#articles" id="view-all">View All Articles <span aria-hidden="true">→</span></a></div>
+      <div class="search-area" hidden><label for="article-search">Find an article</label><input id="article-search" type="search" placeholder="Search titles and topics…" /></div>
+      <div class="article-grid">{articles.map((article) => <article class="article-card" data-category={article.category} data-title={article.title.toLowerCase()}><a href={article.url} aria-label={`Read ${article.title}`}><img src={article.image} alt={article.title} loading="lazy" /></a><h3><a href={article.url}>{article.title}</a></h3><span class="pill">{article.category}</span><p class="card-meta">{article.date} <span>|</span> {article.read}</p></article>)}</div><p class="no-results" hidden>{articles.length ? 'No matching articles found.' : 'Our first articles are brewing. Check back soon.'}</p>
+    </section>
+    <section class="newsletter wrap" id="newsletter"><div><span class="eyebrow">THE WEEKLY BREW</span><h2>A little more signal.<br/>A little less noise.</h2><p>Thoughtful tech, AI, QA and coding stories — one fresh roundup at a time.</p></div><div class="newsletter-box"><p>Our newsletter is brewing.</p><small>Subscription sign-up will be added once a free provider is configured. For now, explore the articles above.</small></div></section>
+  </main>
+  <footer><div class="wrap footer-inner"><a class="brand" href="/">brew <span>&amp;</span> binary<span class="dot">.</span></a><p>Fresh tech, AI &amp; code — brewed weekly.</p><small>© {new Date().getFullYear()} Brew &amp; Binary. Made with curiosity.</small></div></footer>
+  <script>
+    const menu = document.querySelector<HTMLButtonElement>('.menu-toggle');
+    const mobileNav = document.querySelector<HTMLElement>('.mobile-nav');
+    menu?.addEventListener('click', () => { const open = menu.getAttribute('aria-expanded') !== 'true'; menu.setAttribute('aria-expanded', String(open)); if (mobileNav) mobileNav.hidden = !open; });
+    const searchTrigger = document.querySelector<HTMLButtonElement>('.search-trigger');
+    const searchArea = document.querySelector<HTMLElement>('.search-area');
+    const searchInput = document.querySelector<HTMLInputElement>('#article-search');
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.article-card'));
+    const empty = document.querySelector<HTMLElement>('.no-results');
+     if (empty && cards.length === 0) empty.hidden = false;
+    let selectedCategory = 'Articles';
+    function filterCards() { const term = (searchInput?.value || '').trim().toLowerCase(); let count = 0; cards.forEach(card => { const match = (selectedCategory === 'Articles' || card.dataset.category === selectedCategory) && ((card.dataset.title || '').includes(term) || (card.dataset.category || '').toLowerCase().includes(term)); card.hidden = !match; if (match) count++; }); if (empty) empty.hidden = count !== 0; }
+    searchTrigger?.addEventListener('click', () => { if (!searchArea) return; searchArea.hidden = !searchArea.hidden; if (!searchArea.hidden) { searchInput?.focus(); document.querySelector('#articles')?.scrollIntoView({behavior:'smooth'}); } else if (searchInput) { searchInput.value = ''; filterCards(); } });
+    searchInput?.addEventListener('input', filterCards);
+    document.querySelector('#view-all')?.addEventListener('click', () => { selectedCategory = 'Articles'; if (searchInput) searchInput.value = ''; filterCards(); });
+  </script>
+</body>
+</html>
+<style>
+  :global(*){box-sizing:border-box} :global(html){scroll-behavior:smooth} :global(body){margin:0;background:#faf7f2;color:#192126;font-family:'DM Sans',Arial,sans-serif} :global(a){color:inherit;text-decoration:none} :global(button),:global(input){font:inherit} :global([hidden]){display:none!important}
+  .wrap{width:min(1280px,calc(100% - 96px));margin-inline:auto}.site-header{border-bottom:1px solid #e7ddd2;background:rgba(250,247,242,.96);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}.header-inner{width:min(1360px,calc(100% - 80px));margin:auto;min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:28px}.brand{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:30px;white-space:nowrap;letter-spacing:-1.6px}.brand span,.hero h1 span{color:#ad6125}.brand .dot,.hero h1 .dot{color:#ad6125}.desktop-nav{display:flex;align-items:center;gap:31px}.desktop-nav a{font-size:14px;font-weight:600;padding:27px 0 24px;border-bottom:3px solid transparent;white-space:nowrap}.desktop-nav a.active,.desktop-nav a:hover{border-color:#b46a2c}.header-actions{display:flex;align-items:center;gap:24px}.search-trigger,.menu-toggle{border:0;background:transparent;cursor:pointer;padding:6px;color:#172027}.subscribe{background:#ae611e;color:#fff;border-radius:8px;padding:12px 21px;font-weight:700;font-size:14px}.subscribe:hover{background:#874815}.menu-toggle{display:none;font-size:24px}.mobile-nav{padding:14px 30px;border-top:1px solid #e7ddd2}.mobile-nav a{display:block;padding:9px 0}.hero{text-align:center;padding:32px 16px 42px;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,#fffdf9 0%,#faf7f2 75%)}.hero h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(58px,7.5vw,114px);letter-spacing:-6px;line-height:1.17;margin:0;font-weight:800}.tagline{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:clamp(20px,2.4vw,34px);margin:0}.hero-rule{width:min(670px,80%);height:1px;background:#e6d9cc;margin:27px auto 18px;position:relative}.hero-rule span{position:absolute;left:45%;top:-2px;width:10%;height:3px;background:#b36b2c}.topics{letter-spacing:4px;font-size:13px;font-weight:600;margin:0}.topics b{color:#ad6125;padding:0 12px}.hero-deco{position:absolute;color:#cfa987}.hero-deco.left{left:10%;top:26%;font-size:32px;border:1px solid #d5a16e;padding:12px 18px}.hero-deco.right{right:5%;top:20%;font-size:13px;letter-spacing:8px;line-height:2.2;opacity:.7}.featured{display:grid;grid-template-columns:1fr 1.25fr;gap:55px;align-items:center;padding-bottom:34px;border-bottom:1px solid #e4d9ce}.featured>img{width:100%;height:300px;object-fit:cover;border-radius:12px;background:#ddd}.featured-copy{position:relative;padding-right:55px}.eyebrow{display:inline-block;border:1px solid #e0b28a;background:#f9e9dc;border-radius:20px;padding:6px 14px;font-weight:700;font-size:12px;letter-spacing:1.3px}.featured h2,.section-head h2,.newsletter h2{font-family:'Playfair Display',Georgia,serif;letter-spacing:-1px}.featured h2{font-size:clamp(31px,3.4vw,49px);line-height:1.14;margin:16px 0 10px}.featured-copy>p{font-size:17px;line-height:1.65;color:#53575a;margin:0 0 17px}.meta{display:flex;align-items:center;gap:20px;font-size:13px;color:#52565a}.meta i{height:17px;border-left:1px solid #d4c9be}.feature-note{display:inline-block;margin-top:18px;font-size:12px;font-weight:700;color:#a65b24;text-transform:uppercase;letter-spacing:1px}.articles{padding-top:24px;padding-bottom:66px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:19px}.section-head h2{font-size:38px;margin:0 0 8px}.underline{display:block;width:58px;height:3px;background:#b2682d}.section-head>a{color:#a95c20;font-weight:600}.section-head>a span{font-size:23px;margin-left:9px}.article-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}.article-card{min-width:0}.article-card img{width:100%;height:150px;object-fit:cover;border-radius:10px;display:block}.article-card h3{font-family:'Playfair Display',Georgia,serif;font-size:20px;line-height:1.22;margin:11px 0 10px;min-height:74px}.pill{background:#f4dfcb;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;display:inline-block}.card-meta{font-size:12px;margin:10px 0;color:#40474b}.card-meta span{padding:0 10px;color:#9b9289}.search-area{margin-bottom:22px}.search-area label{display:block;font-weight:700;font-size:13px;margin-bottom:8px}.search-area input{width:100%;padding:13px 16px;border:1px solid #d9c4b2;border-radius:8px;background:#fff;outline-color:#b36b2c}.no-results{color:#75675c}.newsletter{border-top:1px solid #e1d4c7;padding:45px 0 65px;display:grid;grid-template-columns:1fr 1fr;gap:55px;align-items:center}.newsletter h2{font-size:38px;line-height:1.18;margin:15px 0}.newsletter p{color:#5c5a57;line-height:1.6}.newsletter-box{border:1px solid #dfc8b2;border-radius:12px;background:#f5e9dc;padding:28px}.newsletter-box p{font-family:'Playfair Display',Georgia,serif;font-size:25px;color:#24221f;margin:0 0 10px}.newsletter-box small{line-height:1.7;color:#5c5149}footer{background:#1b282a;color:#eee6db;padding:35px 0}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}.footer-inner .brand{font-size:24px}.footer-inner p,.footer-inner small{font-size:12px;color:#c4c7c1}
+  @media(max-width:1120px){.desktop-nav{gap:17px}.desktop-nav a{font-size:12px}.brand{font-size:25px}.header-actions{gap:12px}.hero-deco{display:none}.article-grid{gap:17px}}
+  @media(max-width:850px){.desktop-nav{display:none}.menu-toggle{display:block}.header-inner{width:calc(100% - 40px)}.wrap{width:calc(100% - 40px)}.featured{gap:25px}.featured>img{height:260px}.featured-copy{padding-right:0}.article-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.article-card h3{min-height:0}.hero h1{letter-spacing:-3px}.topics{letter-spacing:2px;line-height:2}.topics b{padding:0 5px}}
+  @media(max-width:600px){.brand{font-size:23px}.header-inner{min-height:66px}.header-actions{gap:8px}.subscribe{padding:10px 12px;font-size:12px}.hero{padding:44px 14px 34px}.hero h1{font-size:clamp(45px,11vw,68px);letter-spacing:-3px}.tagline{font-size:19px;margin-top:9px}.topics{font-size:10px;letter-spacing:1px}.featured{grid-template-columns:1fr;gap:20px}.featured>img{height:230px}.featured h2{font-size:35px}.featured-copy>p{font-size:15px}.section-head h2{font-size:30px}.section-head>a{font-size:12px}.article-grid{gap:22px 14px}.article-card img{height:115px}.article-card h3{font-size:16px}.card-meta{font-size:10px}.card-meta span{padding:0 3px}.newsletter{grid-template-columns:1fr;gap:18px}.newsletter h2{font-size:32px}.footer-inner{flex-direction:column;text-align:center}}
+  /* Homepage refinement: compact editorial masthead and cohesive warm imagery */
+  @media(min-width:851px){
+    .hero{padding-top:20px;padding-bottom:29px}
+    .hero h1{font-size:clamp(58px,6.4vw,94px);line-height:1.13}
+    .tagline{font-size:clamp(20px,2.1vw,29px)}
+    .hero-rule{margin:19px auto 15px}
+    .featured{gap:48px}
+    .featured>img{height:275px}
+    .articles{padding-top:21px}
+  }
+  .featured>img{filter:sepia(.36) saturate(.83) contrast(1.08)}
+  .article-card img{filter:saturate(.68) sepia(.13);transition:filter .2s ease}
+  .article-card:hover img{filter:saturate(.95) sepia(.08)}
+  .article-card h3{letter-spacing:-.3px}
+  @media(max-width:600px){.hero{padding-top:32px;padding-bottom:28px}.hero-rule{margin:19px auto 14px}}
+</style>
+
+<style>
+.hero::before,.hero::after{content:"";position:absolute;pointer-events:none;width:30%;height:125px;top:70px;opacity:.22;background:repeating-radial-gradient(ellipse at 0% 0%,transparent 0 12px,#c8844b 13px,#c8844b 14px,transparent 15px 23px);mask-image:linear-gradient(to right,#000,transparent)}
+.hero::before{left:-14%;transform:rotate(-12deg)}
+.hero::after{right:-14%;transform:rotate(168deg)}
+.featured>img{filter:none;box-shadow:0 8px 28px rgba(43,27,14,.08)}
+.article-card img{filter:none;transition:transform .25s ease,box-shadow .25s ease}
+.article-card:hover img{filter:none;transform:translateY(-3px);box-shadow:0 10px 24px rgba(43,27,14,.13)}
+.featured-copy .eyebrow{background:#fbede1}
+@media(max-width:850px){.hero::before,.hero::after{display:none}}
+</style>
+
+<style>.article-card h3 a:hover{color:#ad6125}.article-card h3 a:focus-visible{outline:2px solid #ad6125;outline-offset:3px}</style>
+
+<style>
+  .featured-image-link { display:block; width:100%; }
+  .featured-image-link img { display:block; width:100%; height:275px; object-fit:cover; border-radius:12px; box-shadow:0 8px 28px rgba(43,27,14,.08); }
+  .featured-copy h2 a:hover { color:#ad6125; }
+  @media(max-width:850px){.featured-image-link img{height:260px}}
+  @media(max-width:600px){.featured-image-link img{height:230px}}
+</style>
